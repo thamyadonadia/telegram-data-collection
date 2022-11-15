@@ -1,6 +1,8 @@
 import dotenv
 import os 
+import datetime
 import src.chanel_url as chanel_url
+import src.chanels as chanels
 
 from telethon import TelegramClient
 from telethon.tl.types import InputMessagesFilterPhotos
@@ -12,22 +14,34 @@ dotenv.load_dotenv(dotenv.find_dotenv())
 api_id = os.getenv("api_id")
 api_hash = os.getenv("api_hash")
 
-session_name = input("Enter the name of the ession: ")
+session_name = input("Enter the name of the session: ")
 client = TelegramClient(session_name, api_id, api_hash)
 
 async def main():
-    url = input("Enter the URL of the chanel: ")
-    chanel_id = chanel_url.url_treatment(url)
-    file_path = "./images"
+    # get the file that contains the chanel's ou group's ids
+    url_file = input("Enter the name of the file that contains the IDs: ")
+    chanel_dict = chanels.read_chanels(url_file)
+
+    # get the offset date -> messages previous to this date will be retrieved
+    day, month, year = input("Enter the offset date: ").split("/")
+    date = datetime.datetime(int(year), int(month), int(day))
     
-    #TODO: colocar um .txt com os links pra ele ler e coletar de cada canal no .txt
-    #TODO: mexer com venv e entender o PhotoSize
-    async for message in client.iter_messages(chanel_id, filter=InputMessagesFilterPhotos):
-       #await message.download_media(file_path, thumb = PhotoSize(type = "webp", w = 300, h = 300, size = 0))
-        await message.download_media(file_path)
+    images_path = "./images/"
+
+    for x in chanel_dict:
+        chanel_id = chanel_dict[x]
+
+        # creates a directory with the name of the chanel to store the images 
+        if(os.path.exists(images_path+x) == False):
+            os.mkdir(images_path+x)
+        
+        #TODO: PhotSize + 
+        async for message in client.iter_messages(chanel_id, offset_date = date, filter=InputMessagesFilterPhotos):
+            await message.download_media(images_path+x)
 
     # await client.log_out
 
 with client:
     client.loop.run_until_complete(main())
-    
+
+#colocar as tarefas aqui

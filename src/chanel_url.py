@@ -6,3 +6,5 @@ def url_treatment(url):
     chanel_id = str(parameters.get('/im?p')).strip("'[]").split("_")
     chanel_id = chanel_id[0].replace('c', '-100')
     return int(chanel_id)
+
+    
