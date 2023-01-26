@@ -1,2 +1,7 @@
 - evitar coleta de thumb de vídeos
 - comprimir imagens para webp
+
+- criar hierarquia de pastas: mídia > id-grupo > mês > dia > id-mídia
+- coletar id das mídias para associar aos canais
+
+- identificar mídias iguais (encaminhados ou não entre canais) em canais distintos -> aplicar função de hash md5
