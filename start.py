@@ -1,12 +1,13 @@
 import dotenv
 import os 
 import datetime
-import channel_url as channel_url
-import channels as channels
+import src.channel_url as channel_url
+import src.channels as channels
 
 from telethon import TelegramClient
 from telethon.tl.types import InputMessagesFilterPhotos
-from telethon.tl.types import PhotoSize
+from telethon.tl.types import InputMessagesFilterVoice
+from telethon.tl.types import InputMessagesFilterVideo
 
 # searching and loading .env 
 dotenv.load_dotenv(dotenv.find_dotenv())
@@ -15,6 +16,7 @@ api_id = os.getenv("api_id")
 api_hash = os.getenv("api_hash")
 
 session_name = input("Enter the name of the session: ")
+print(session_name)
 client = TelegramClient(session_name, api_id, api_hash)
 
 async def main():
@@ -26,18 +28,24 @@ async def main():
     day, month, year = input("Enter the offset date: ").split("/")
     date = datetime.datetime(int(year), int(month), int(day))
     
-    images_path = "./images/"
+    media_path = "./media/"
 
     for x in channel_dict:
         channel_id = channel_dict[x]
-
-        # creates a directory with the name of the chanel to store the images 
-        if(os.path.exists(images_path+x) == False):
-            os.mkdir(images_path+x)
         
-        #TODO: PhotSize + 
+        # creates a directory with the name of the chanel to store the media 
+        if(os.path.exists(media_path+x) == False):
+            os.mkdir(media_path+x)
+ 
         async for message in client.iter_messages(channel_id, offset_date = date, filter=InputMessagesFilterPhotos):
-            await message.download_media(images_path+x)
+            await message.download_media(media_path+x)
+
+        async for message in client.iter_messages(channel_id, offset_date = date, filter=InputMessagesFilterVideo):
+           await message.download_media(media_path+x)
+
+        async for message in client.iter_messages(channel_id, offset_date = date, filter=InputMessagesFilterVoice):
+            await message.download_media(media_path+x)
+
 
     # await client.log_out
 
