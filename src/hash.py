@@ -14,9 +14,11 @@ def hash_start(file_name):
 
 def write_hash(hash_file, message, dst):
     if message.photo:
-        hash_file.write(str(message.media.photo.access_hash) + "," + dst + "\n")
-    else:
-        hash_file.write(str(message.media.document.access_hash) + "," + dst + "\n")
+        hash_file.write(str(message.media.photo.access_hash) + "," + dst + "," + str(message.date) + "," + "photo\n")
+    elif message.video:
+        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + str(message.date) + "," + "video\n")
+    elif message.voice or message.audio:
+        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + str(message.date) + "," + "audio\n")
 
 def update_set(hash_set, message):
     if message.photo:
