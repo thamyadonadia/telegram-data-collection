@@ -4,13 +4,18 @@ from PIL import Image
 from pathlib import Path
 
 def read_chanels(file_name):
-    with open(file=file_name, mode = "r") as file:
+    channel_set = set()
+    with open(file = file_name, mode = "r") as file:
         reader = csv.reader(file)
-        channel_dict = {rows[0]:int(rows[1]) for rows in reader}
-    return channel_dict
+    
+        for rows in reader:
+            channel_set.add(int(rows[1]))
+
+    file.close()
+    return channel_set
 
 def organize_files(media_path, message):
-    # creates a directory with the name of the chanel to store the media    
+    # creates a directory with the month of the message    
     date = message.date
     month = calendar.month_abbr[date.month] 
     media_path += "/" + month.lower() 
@@ -22,15 +27,15 @@ def organize_files(media_path, message):
 
 def rename_files(message, old_path, media_path):
     if message.photo:
-        dst = str(media_path)+"/"+str(message.id)+".jpg"
+        dst = str(media_path)+"/"+str(message.media.photo.access_hash)+".jpg"
         os.rename(str(old_path), dst)
     
     elif message.video:
-        dst = str(media_path)+"/"+str(message.id)+".MP4"
+        dst = str(media_path)+"/"+str(message.media.document.access_hash)+".MP4"
         os.rename(str(old_path), dst)
 
     elif message.voice or message.audio:
-        dst = str(media_path)+"/"+str(message.id)+".oga"
+        dst = str(media_path)+"/"+str(message.media.document.access_hash)+".oga"
         os.rename(str(old_path), dst)
     
     return dst
