@@ -1,7 +1,6 @@
 import dotenv, os 
 import src.setup as setup
 import src.hash as hash
-
 from telethon import TelegramClient
 
 # searching and loading .env 
@@ -11,54 +10,69 @@ api_id = os.getenv("api_id")
 api_hash = os.getenv("api_hash")
 
 # creating a session to collect the data
-session_name = "20jan"
+session_name = "anon" 
 client = TelegramClient(session_name, api_id, api_hash)
-event = "20ago"
-#input("Enter the event: ")
+event = input("Enter the name of the dataset: ")
 
 async def main():
     # get the file that contains the chanel's or group's ids
-    channels_file = "./in/channels.csv"
-    channel_dict = setup.read_chanels(channels_file)
+    channels_file = input("Enter the name of the csv of channels: ")
+    channel_set = setup.read_chanels(channels_file)
 
     # create a file to write the hash code
-    hash_set = hash.hash_start("./docs/hash.csv")
-    hash_file = open("./docs/hash.csv", "a")
+    hash_file_name = input("Enter the name of the hash file: ")
+    hash_file = open(hash_file_name, "a")
+    hash_set = hash.hash_start(hash_file_name)
 
+    # creates a dicionary to save the amount found of each media
+    amount = {} 
+   
     # creates a directory to store the media from channels and groups  
     if(not os.path.exists(f"./media-{event}/")):
         os.mkdir(f"./media-{event}/")
 
+    total = 0
+    downloaded = 0
     # iterates through each channel to collect the media
-    for channel in channel_dict:
-        channel_id = channel_dict[channel]
-        media_path = f"./media-{event}/" + str(channel_id)
+    for channel in channel_set:
+        entity = await client.get_entity(channel)    
+        media_path = f"./media-{event}/" + str(channel)
                 
-        # creates a directory with the name of the chanel to store the media 
+        # creates a directory with the id of the channel to store the media 
         if(not os.path.exists(media_path)):
             os.mkdir(media_path)
 
-        async for message in client.iter_messages(channel_id):
+        async for message in client.iter_messages(entity = entity):
             
             if (message.photo or message.video or message.voice or message.audio) and (not message.web_preview): 
-                
+                total+=1
+
                 if hash.new_media(hash_set, message):
-                    media_path = f"./media-{event}/" + str(channel_id)
+                    media_path = f"./media-{event}/" + str(channel)
                     media_path = setup.organize_files(media_path, message)
 
-                    path = await message.download_media(media_path)
+                    path = await message.download_media(file = media_path)
                     dst = setup.rename_files(message, path, media_path)
 
-                    hash.write_hash(hash_file, message, dst)
-                    hash_set = hash.update_set(hash_set, message)  
+                    hash.update_set(hash_set, message)
+                    hash.write_hash(hash_file, message, dst)                
+                    downloaded+=1
 
                     # convert an image to webp format     
-                    if message.photo: 
-                        setup.convert_to_webp(dst)   
+                    #if message.photo: 
+                    #    setup.convert_to_webp(dst) 
+                 
+                hash.update_amount(message, amount)    
+                
+   
     
+    amount_file = open(f"./{event}-amount.csv", "a")
+    hash.write_amount(amount_file, amount, total, downloaded)
+        
+    amount_file.close()
     hash_file.close()
 
 with client:
     client.loop.run_until_complete(main())
 
-    # await client.log_out
+#await client.log_out()
