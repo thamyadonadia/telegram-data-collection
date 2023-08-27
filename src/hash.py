@@ -14,11 +14,11 @@ def hash_start(file_name):
 
 def write_hash(hash_file, message, dst):
     if message.photo:
-        hash_file.write(str(message.media.photo.access_hash) + "," + dst + "," + str(message.date) + "," + "photo\n")
+        hash_file.write(str(message.media.photo.access_hash) + "," + dst + "," + "photo\n")
     elif message.video:
-        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + str(message.date) + "," + "video\n")
+        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + "video\n")
     elif message.voice or message.audio:
-        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + str(message.date) + "," + "audio\n")
+        hash_file.write(str(message.media.document.access_hash) + "," + dst + "," + "audio\n")
 
 def update_set(hash_set, message):
     if message.photo:
@@ -27,18 +27,39 @@ def update_set(hash_set, message):
     else:
         hash_code = str(message.media.document.access_hash)
         hash_set.add(hash_code)
-    
-    return hash_set
 
+    
 def new_media(hash_set, message):
     if message.photo:
         hash_code = str(message.media.photo.access_hash)
-    
         if hash_code in hash_set:
-            return False
+            return False   
     else:
         hash_code = str(message.media.document.access_hash)
         if hash_code in hash_set:
             return False
     
     return True
+
+def update_amount(message, amount):
+    if message.photo: 
+        hash_code = str(message.media.photo.access_hash)
+        if hash_code in amount: 
+            amount[hash_code] += 1
+        else: 
+            amount[hash_code] = 1
+
+    else: 
+        hash_code = str(message.media.document.access_hash)
+        if hash_code in amount: 
+            amount[hash_code] += 1
+        else: 
+            amount[hash_code] = 1
+
+def write_amount(amount_file, amount, total, downloaded): 
+    for hash_code in amount: 
+        amount_file.write(str(hash_code) + "," + str(amount[hash_code]) + "\n")
+    
+    amount_file.write(f"Total: {total}, Downloaded: {downloaded}")
+
+
