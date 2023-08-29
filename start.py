@@ -1,7 +1,7 @@
-import dotenv, os 
+import dotenv, os
+from datetime import datetime
 import src.setup as setup
 import src.hash as hash
-from datetime import date
 from telethon import TelegramClient
 
 # searching and loading .env 
@@ -26,10 +26,10 @@ async def main():
     hash_set = hash.hash_start(hash_file_name)
 
     # retrieve start and end date of dataset
-    start_date = input("Enter the start date [dd/mm/yy]: ")
+    start_date = input("Enter the start date [dd/mm/yyyy]: ")
     start_date = datetime.strptime(start_date, "%d/%m/%Y")
 
-    end_date = input("Enter the end date [dd/mm/yy]: ")
+    end_date = input("Enter the end date [dd/mm/yyyy]: ")
     end_date = datetime.strptime(end_date, "%d/%m/%Y")
 
     # creates a dicionary to save the amount found of each media
@@ -41,6 +41,7 @@ async def main():
 
     total = 0
     downloaded = 0
+    
     # iterates through each channel to collect the media
     for channel in channel_set:
         entity = await client.get_entity(channel)    
@@ -51,7 +52,10 @@ async def main():
             os.mkdir(media_path)
 
         async for message in client.iter_messages(entity = entity, offset_date = end_date):
-            if message.date < start_date: break
+            message_date = datetime.fromtimestamp(message.date.timestamp())
+            print(message_date)
+            
+            if message_date < start_date: break
 
             if (message.photo or message.video or message.voice or message.audio) and (not message.web_preview): 
                 total+=1
