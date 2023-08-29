@@ -1,6 +1,7 @@
 import dotenv, os 
 import src.setup as setup
 import src.hash as hash
+from datetime import date
 from telethon import TelegramClient
 
 # searching and loading .env 
@@ -24,6 +25,13 @@ async def main():
     hash_file = open(hash_file_name, "a")
     hash_set = hash.hash_start(hash_file_name)
 
+    # retrieve start and end date of dataset
+    start_date = input("Enter the start date [dd/mm/yy]: ")
+    start_date = datetime.strptime(start_date, "%d/%m/%Y")
+
+    end_date = input("Enter the end date [dd/mm/yy]: ")
+    end_date = datetime.strptime(end_date, "%d/%m/%Y")
+
     # creates a dicionary to save the amount found of each media
     amount = {} 
    
@@ -42,8 +50,9 @@ async def main():
         if(not os.path.exists(media_path)):
             os.mkdir(media_path)
 
-        async for message in client.iter_messages(entity = entity):
-            
+        async for message in client.iter_messages(entity = entity, offset_date = end_date):
+            if message.date < start_date: break
+
             if (message.photo or message.video or message.voice or message.audio) and (not message.web_preview): 
                 total+=1
 
@@ -61,11 +70,9 @@ async def main():
                     # convert an image to webp format     
                     #if message.photo: 
                     #    setup.convert_to_webp(dst) 
-                 
+                    
                 hash.update_amount(message, amount)    
-                
-   
-    
+                    
     amount_file = open(f"./{event}-amount.csv", "a")
     hash.write_amount(amount_file, amount, total, downloaded)
         
