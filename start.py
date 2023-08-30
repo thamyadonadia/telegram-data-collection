@@ -53,13 +53,15 @@ async def main():
 
         async for message in client.iter_messages(entity = entity, offset_date = end_date):
             message_date = datetime.fromtimestamp(message.date.timestamp())
-            print(message_date)
             
             if message_date < start_date: break
 
-            if (message.photo or message.video or message.voice or message.audio) and (not message.web_preview): 
+            if (message.photo or message.video or message.voice or message.audio or message.document.mime_type) and (not message.web_preview): 
                 total+=1
 
+                if ".tgs" in str(message.file.name): continue
+
+                print(message.file.name)     
                 if hash.new_media(hash_set, message):
                     media_path = f"./media-{event}/" + str(channel)
                     media_path = setup.organize_files(media_path, message)

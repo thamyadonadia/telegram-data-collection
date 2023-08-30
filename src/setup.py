@@ -26,17 +26,28 @@ def organize_files(media_path, message):
     return media_path
 
 def rename_files(message, old_path, media_path):
+    dst = ""
+
     if message.photo:
         dst = str(media_path)+"/"+str(message.media.photo.access_hash)+".jpg"
         os.rename(str(old_path), dst)
     
     elif message.video:
-        dst = str(media_path)+"/"+str(message.media.document.access_hash)+".MP4"
+        dst = str(media_path)+"/"+str(message.media.document.access_hash)+".mp4"
         os.rename(str(old_path), dst)
 
     elif message.voice or message.audio:
         dst = str(media_path)+"/"+str(message.media.document.access_hash)+".oga"
         os.rename(str(old_path), dst)
+
+    elif message.document.mime_type: 
+        if ".mp4" in str(message.file.name): # when the mime_type document is a gif 
+            dst = str(media_path)+"/"+str(message.media.document.access_hash)+".mp4"
+            os.rename(str(old_path), dst)
+
+        elif ".webp" in str(message.file.name): # when the mime_type document is a static sticker
+            dst = str(media_path)+"/"+str(message.media.document.access_hash)+".webp"
+            os.rename(str(old_path), dst)        
     
     return dst
 
